@@ -2,6 +2,13 @@ name: Backdate commits (2026)
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "If true, do not create commits/push"
+        required: false
+        default: "false"
+
+
 
 permissions:
   contents: write
