@@ -1,0 +1,118 @@
+name: Backdate commits (2026)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backdate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git author
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Backdate commits
+        shell: bash
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          # Ensure we are on the workflow branch.
+          git checkout "${BRANCH}" || true
+
+          touch date-commits.txt
+
+          commit_one_day() {
+            local y=$1
+            local m=$2
+            local d=$3
+            local k=$4   # commit index for that day (1..N)
+            local tz_hour=${5:-00}
+
+            # Make the file change unique per commit.
+            # Also ensures there is always something to commit.
+            local stamp="${y}-${m}-${d} commit ${k}"
+            echo "${stamp} @ $(date -u +%FT%TZ)" >> date-commits.txt
+
+            # Use backdated timestamps.
+            # git's *DATE format* is YYYY-MM-DDTHH:MM:SS.
+            # We set hour offset by k to reduce identical timestamps.
+            local hh=$(printf "%02d" $(((k-1) % 24))) )
+            local backdate="${y}-${m}-${d}T${hh}:00:00"
+
+            GIT_AUTHOR_DATE="${backdate}" \
+            GIT_COMMITTER_DATE="${backdate}" \
+            git add date-commits.txt
+
+            # Avoid empty commits.
+            if ! git diff --cached --quiet; then
+              GIT_AUTHOR_DATE="${backdate}" \
+              GIT_COMMITTER_DATE="${backdate}" \
+              git commit -m "Backdated: ${y}-${m}-${d} (commit ${k})"
+            fi
+          }
+
+          # Ensure target branch exists.
+          # Workflow runs on the branch already created by you.
+
+          # Jan 1–20 (20 commits)
+          for day in {1..20}; do
+            for k in {1..1}; do
+              printf -v dd "%02d" "$day"
+              commit_one_day 2026 01 "$dd" "$k"
+            done
+          done
+
+          # Feb 1–20 (20 commits)
+          for day in {1..20}; do
+            for k in {1..1}; do
+              printf -v dd "%02d" "$day"
+              commit_one_day 2026 02 "$dd" "$k"
+            done
+          done
+
+          # Mar 12–22 (11 commits)
+          for day in {12..22}; do
+            for k in {1..1}; do
+              printf -v dd "%02d" "$day"
+              commit_one_day 2026 03 "$dd" "$k"
+            done
+          done
+
+          # Apr 23–29 (7 commits)
+          for day in {23..29}; do
+            for k in {1..1}; do
+              printf -v dd "%02d" "$day"
+              commit_one_day 2026 04 "$dd" "$k"
+            done
+          done
+
+          # May 1–31: 7 commits per day
+          for day in {1..31}; do
+            printf -v dd "%02d" "$day"
+            for k in {1..7}; do
+              commit_one_day 2026 05 "$dd" "$k"
+            done
+          done
+
+          # Jun 1–30: 7 commits per day
+          for day in {1..30}; do
+            printf -v dd "%02d" "$day"
+            for k in {1..7}; do
+              commit_one_day 2026 06 "$dd" "$k"
+            done
+          done
+
+          # Push changes
+          git push origin "${BRANCH}"
+
