@@ -39,7 +39,7 @@ jobs:
             local m=$2
             local d=$3
             local k=$4   # commit index for that day (1..N)
-            local tz_hour=${5:-00}
+
 
             # Make the file change unique per commit.
             # Also ensures there is always something to commit.
@@ -49,7 +49,8 @@ jobs:
             # Use backdated timestamps.
             # git's *DATE format* is YYYY-MM-DDTHH:MM:SS.
             # We set hour offset by k to reduce identical timestamps.
-            local hh=$(printf "%02d" $(((k-1) % 24))) )
+            local hh=$(printf "%02d" $(((k-1) % 24)))
+
             local backdate="${y}-${m}-${d}T${hh}:00:00"
 
             GIT_AUTHOR_DATE="${backdate}" \
