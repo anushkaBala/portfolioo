@@ -108,21 +108,30 @@ jobs:
             done
           done
 
-          # May 1–31: 7 commits per day
+          # May 1–31: 2 commits per day
           for day in {1..31}; do
             printf -v dd "%02d" "$day"
-            for k in {1..7}; do
+            for k in {1..2}; do
               commit_one_day 2026 05 "$dd" "$k"
             done
           done
 
-          # Jun 1–30: 7 commits per day
+          # Jun 1–30: 2 commits per day
           for day in {1..30}; do
             printf -v dd "%02d" "$day"
-            for k in {1..7}; do
+            for k in {1..2}; do
               commit_one_day 2026 06 "$dd" "$k"
             done
           done
+
+          # Jul 1–31: 2 commits per day (cap total <=1500)
+          for day in {1..31}; do
+            printf -v dd "%02d" "$day"
+            for k in {1..2}; do
+              commit_one_day 2026 07 "$dd" "$k"
+            done
+          done
+
 
 
 
